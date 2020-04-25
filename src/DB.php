@@ -14,6 +14,21 @@ use PDOStatement;
 
 class DB
 {
+    /**
+     * Just set error codes.
+     */
+    public const ERRMODE_SILENT = PDO::ERRMODE_SILENT;
+
+    /**
+     * Raise E_WARNING.
+     */
+    public const ERRMODE_WARNING = PDO::ERRMODE_WARNING;
+
+    /**
+     * Throw exceptions.
+     */
+    public const ERRMODE_EXCEPTION = PDO::ERRMODE_EXCEPTION;
+
     protected $pdo;
 
     protected $fetchStyle = PDO::FETCH_OBJ;
@@ -34,6 +49,30 @@ class DB
 
         try {
             $this->pdo = new PDO($dsn->toString(), $username, $password, $options);
+        } catch (PDOException $exception) {
+            throw new DBException($exception->getMessage(), $exception->getCode());
+        }
+    }
+
+    /**
+     * @param int $errorMode
+     * @throws DBInvalidFetchStyleException
+     * @throws DBException
+     */
+    public function setErrorMode(int $errorMode)
+    {
+        $validErrorModes = [
+            PDO::ERRMODE_SILENT,
+            PDO::ERRMODE_WARNING,
+            PDO::ERRMODE_EXCEPTION,
+        ];
+
+        if (!in_array($errorMode, $validErrorModes)) {
+            throw new DBInvalidFetchStyleException("Illegal Error mode");
+        }
+
+        try {
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, $errorMode);
         } catch (PDOException $exception) {
             throw new DBException($exception->getMessage(), $exception->getCode());
         }
