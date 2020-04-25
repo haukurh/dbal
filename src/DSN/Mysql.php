@@ -28,7 +28,7 @@ class Mysql implements DSNInterface
         $dsn = "mysql:host={$this->host};dbname={$this->database};";
 
         if (!is_null($this->port)) {
-            $dsn .= "port={$this->port}";
+            $dsn .= "port={$this->port};";
         }
 
         $dsn .= "charset={$this->charset};";
