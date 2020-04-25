@@ -84,7 +84,7 @@ $articles = $db->fetchAll('articles', 'WHERE id >= :id and title like :term', [
 ]);
 ```
 
-Example on how not to implement:
+Example on how **NOT** to implement:
 
 ```php
 <?php
