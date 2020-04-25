@@ -14,4 +14,14 @@ class DSN
     {
         return new MysqlSocket($database, $socket, $charset);
     }
+
+    public static function sqlite(string $filename): DSNInterface
+    {
+        return new Sqlite($filename);
+    }
+
+    public static function sqliteMemory(): DSNInterface
+    {
+        return new SqliteMemory();
+    }
 }
