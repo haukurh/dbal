@@ -26,7 +26,7 @@ class DB
      * @param array $options
      * @throws DBException
      */
-    public function __construct(DSNInterface $dsn, string $username, string $password, array $options = [])
+    public function __construct(DSNInterface $dsn, ?string $username = null, ?string $password = null, array $options = [])
     {
         $defaultOptions = [];
 
