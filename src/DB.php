@@ -45,6 +45,16 @@ class DB
     }
 
     /**
+     * Getter for PDO object
+     *
+     * @return PDO object
+     */
+    public function pdo(): PDO
+    {
+        return $this->pdo;
+    }
+
+    /**
      * Set foreign key check ON or OFF
      *
      * @param bool $value ON or OFF
