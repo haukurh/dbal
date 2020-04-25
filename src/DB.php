@@ -4,10 +4,12 @@ namespace Haukurh\DBAL;
 
 
 use Haukurh\DBAL\DSN\DSNInterface;
+use Haukurh\DBAL\Exception\DBException;
 use Haukurh\DBAL\Exception\DBInvalidDataType;
 use Haukurh\DBAL\Exception\DBInvalidFetchStyleException;
 use Haukurh\DBAL\Exception\DBParameterKeyCollusion;
 use PDO;
+use PDOException;
 use PDOStatement;
 
 class DB
@@ -16,6 +18,14 @@ class DB
 
     protected $fetchStyle = PDO::FETCH_OBJ;
 
+    /**
+     * DB constructor.
+     * @param DSNInterface $dsn
+     * @param string $username
+     * @param string $password
+     * @param array $options
+     * @throws DBException
+     */
     public function __construct(DSNInterface $dsn, string $username, string $password, array $options = [])
     {
         $defaultOptions = [
@@ -24,7 +34,11 @@ class DB
 
         $options = array_merge($defaultOptions, $options);
 
-        $this->pdo = new PDO($dsn->toString(), $username, $password, $options);
+        try {
+            $this->pdo = new PDO($dsn->toString(), $username, $password, $options);
+        } catch (PDOException $exception) {
+            throw new DBException($exception->getMessage(), $exception->getCode());
+        }
     }
 
     /**
@@ -64,11 +78,16 @@ class DB
      * Set foreign key check ON or OFF
      *
      * @param bool $value ON or OFF
+     * @throws DBException
      */
     public function setForeignKeyCheck(bool $value)
     {
         $value = (int) $value;
-        $this->pdo->query("SET FOREIGN_KEY_CHECKS={$value};");
+        try {
+            $this->pdo->query("SET FOREIGN_KEY_CHECKS={$value};");
+        } catch (PDOException $exception) {
+            throw new DBException($exception->getMessage(), $exception->getCode());
+        }
     }
 
     /**
@@ -76,15 +95,20 @@ class DB
      *
      * @param string $table table to truncate
      * @param bool $force set foreign key check to false before truncate, i.e. skip foreign key check
+     * @throws DBException
      */
     public function truncate(string $table, bool $force = false): void
     {
-        if ($force) {
-            $this->setForeignKeyCheck(false);
-            $this->pdo->prepare("TRUNCATE `{$table}`;")->execute();
-            $this->setForeignKeyCheck(true);
-        } else {
-            $this->pdo->prepare("TRUNCATE `{$table}`;")->execute();
+        try {
+            if ($force) {
+                $this->setForeignKeyCheck(false);
+                $this->pdo->prepare("TRUNCATE `{$table}`;")->execute();
+                $this->setForeignKeyCheck(true);
+            } else {
+                $this->pdo->prepare("TRUNCATE `{$table}`;")->execute();
+            }
+        } catch (PDOException $exception) {
+            throw new DBException($exception->getMessage(), $exception->getCode());
         }
     }
 
@@ -97,6 +121,7 @@ class DB
      * @param array $columns columns to fetch, all columns fetch if none given
      * @return mixed
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     public function fetch(string $table, string $query = '', array $parameters = [], array $columns = [])
     {
@@ -113,6 +138,7 @@ class DB
      * @param array $columns columns to fetch, all columns fetch if none given
      * @return mixed
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     public function fetchAll(string $table, string $query = '', array $parameters = [], array $columns = [])
     {
@@ -126,6 +152,7 @@ class DB
      * @param string $table table to insert into
      * @param array $data pretty much self explanatory
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     public function insert(string $table, array $data): void
     {
@@ -144,6 +171,7 @@ class DB
      * @param string $query sub query
      * @param array $parameters dynamic parameters, which should be referenced in query
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     public function delete(string $table, string $query = '', array $parameters = [])
     {
@@ -158,6 +186,7 @@ class DB
      * @param array $parameters
      * @throws DBParameterKeyCollusion
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     public function update(string $table, array $data, string $query = '', array $parameters = [])
     {
@@ -187,21 +216,26 @@ class DB
      * @param array $parameters prepared data
      * @return PDOStatement executed statement
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     public function execute(string $sql, array $parameters = []): PDOStatement
     {
-        $statement = $this->pdo->prepare($sql);
+        try {
+            $statement = $this->pdo->prepare($sql);
 
-        $params = [];
-        foreach ($parameters as $k => $v) {
-            $k = ltrim($k, ':');
-            $statement->bindParam(":{$k}", $v, $this->getType($k, $v));
-            $params[":{$k}"] = $v;
+            $params = [];
+            foreach ($parameters as $k => $v) {
+                $k = ltrim($k, ':');
+                $statement->bindParam(":{$k}", $v, $this->getType($k, $v));
+                $params[":{$k}"] = $v;
+            }
+
+            $statement->execute($params);
+
+            return $statement;
+        } catch (PDOException $exception) {
+            throw new DBException($exception->getMessage(), $exception->getCode());
         }
-
-        $statement->execute($params);
-
-        return $statement;
     }
 
     /**
@@ -211,6 +245,7 @@ class DB
      * @param array $parameters prepared data
      * @return PDOStatement executed statement
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     public function query(string $sql, array $parameters = []): PDOStatement
     {
@@ -248,6 +283,7 @@ class DB
      * @param array $columns columns to fetch
      * @return mixed
      * @throws DBInvalidDataType
+     * @throws DBException
      */
     protected function preFetch(string $table, string $query = '', array $parameters = [], array $columns = []): PDOStatement
     {
