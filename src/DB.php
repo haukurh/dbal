@@ -260,6 +260,12 @@ class DB
         try {
             $statement = $this->pdo->prepare($sql);
 
+            if ($statement === false) {
+                $info = $this->pdo->errorInfo();
+                $nextException = new DBException("Unable to execute statement '{$sql}'");
+                throw new DBException("SQLSTATE[{$info[0]}]: {$info[2]}", 1, $nextException);
+            }
+
             $params = [];
             foreach ($parameters as $k => $v) {
                 $k = ltrim($k, ':');
