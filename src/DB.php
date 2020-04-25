@@ -16,7 +16,7 @@ class DB
 
     protected $fetchStyle = PDO::FETCH_OBJ;
 
-    public function __construct(DSNInterface $dsn, string $username, string $password, array $options)
+    public function __construct(DSNInterface $dsn, string $username, string $password, array $options = [])
     {
         $this->pdo = new PDO($dsn->toString(), $username, $password, $options);
     }
