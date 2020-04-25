@@ -226,7 +226,7 @@ class DB
             $params = [];
             foreach ($parameters as $k => $v) {
                 $k = ltrim($k, ':');
-                $statement->bindParam(":{$k}", $v, $this->getType($k, $v));
+                $statement->bindValue(":{$k}", $v, $this->getType($k, $v));
                 $params[":{$k}"] = $v;
             }
 
