@@ -7,6 +7,7 @@ use Haukurh\DBAL\DSN\DSNInterface;
 use Haukurh\DBAL\Exception\DBException;
 use Haukurh\DBAL\Exception\DBInvalidDataType;
 use Haukurh\DBAL\Exception\DBInvalidFetchStyleException;
+use Haukurh\DBAL\Exception\DBInvalidNamedParameter;
 use Haukurh\DBAL\Exception\DBParameterKeyCollusion;
 use PDO;
 use PDOException;
@@ -268,6 +269,9 @@ class DB
 
             $params = [];
             foreach ($parameters as $k => $v) {
+                if (!is_string($k)) {
+                    throw new DBInvalidNamedParameter('Given data must have named parameters');
+                }
                 $k = ltrim($k, ':');
                 $statement->bindValue(":{$k}", $v, $this->getType($k, $v));
                 $params[":{$k}"] = $v;
