@@ -28,9 +28,7 @@ class DB
      */
     public function __construct(DSNInterface $dsn, string $username, string $password, array $options = [])
     {
-        $defaultOptions = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ];
+        $defaultOptions = [];
 
         $options = array_merge($defaultOptions, $options);
 
