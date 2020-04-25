@@ -5,6 +5,7 @@ namespace Haukurh\DBAL;
 
 use Haukurh\DBAL\DSN\DSNInterface;
 use Haukurh\DBAL\Exception\DBException;
+use Haukurh\DBAL\Exception\DBInvalidArgument;
 use Haukurh\DBAL\Exception\DBInvalidDataType;
 use Haukurh\DBAL\Exception\DBInvalidFetchStyleException;
 use Haukurh\DBAL\Exception\DBInvalidNamedParameter;
@@ -57,8 +58,8 @@ class DB
 
     /**
      * @param int $errorMode
-     * @throws DBInvalidFetchStyleException
      * @throws DBException
+     * @throws DBInvalidArgument
      */
     public function setErrorMode(int $errorMode)
     {
@@ -69,7 +70,7 @@ class DB
         ];
 
         if (!in_array($errorMode, $validErrorModes)) {
-            throw new DBInvalidFetchStyleException("Illegal Error mode");
+            throw new DBInvalidArgument("Illegal Error mode");
         }
 
         try {
@@ -281,7 +282,7 @@ class DB
 
             return $statement;
         } catch (PDOException $exception) {
-            throw new DBException($exception->getMessage(), $exception->getCode());
+            throw new DBException($exception->getMessage());
         }
     }
 
